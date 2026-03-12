@@ -46,4 +46,40 @@ export class ProductsService {
 
     return result.rows[0] as Product;
   }
+
+  async update(id: number, data: CreateProduct): Promise<Product> {
+    const result = await this.db.query(
+      `UPDATE products
+     SET name = $1,
+         selling_price = $2,
+         capital_price = $3,
+         category = $4,
+         sku = $5,
+         stock_quantity = $6,
+         description = $7,
+         updated_at = NOW()
+     WHERE id = $8
+     RETURNING *`,
+      [
+        data.name,
+        data.selling_price,
+        data.capital_price,
+        data.category,
+        data.sku,
+        data.stock_quantity,
+        data.description ?? null,
+        id,
+      ],
+    );
+
+    return result.rows[0] as Product;
+  }
+
+  async delete(id: number): Promise<{ message: string }> {
+    await this.db.query('DELETE FROM products WHERE id = $1', [id]);
+
+    return {
+      message: 'Product deleted successfully',
+    };
+  }
 }
