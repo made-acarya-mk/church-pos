@@ -1,40 +1,41 @@
-"use client"
+"use client";
 
-import { Input } from "@/components/ui/input"
-import ProductCard from "@/features/pos/components/product-card"
+import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import ProductCard from "@/features/pos/components/product-card";
+import type { Product } from "@/types/product";
+
+async function fetchProducts(): Promise<Product[]> {
+	const res = await fetch("http://localhost:3000/products");
+	const data = await res.json();
+	return data.data;
+}
 
 export default function POSPage() {
-  return (
-    <div className="p-6 space-y-6">
+	const { data, isLoading } = useQuery<Product[]>({
+		queryKey: ["products"],
+		queryFn: fetchProducts,
+	});
 
-      <h1 className="text-3xl font-bold">
-        Point of Sale
-      </h1>
+	if (isLoading) return <div className="p-6">Loading...</div>;
 
-      <Input placeholder="Search products..." />
+	return (
+		<div className="p-6 space-y-6">
+			<h1 className="text-3xl font-bold">Point of Sale</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+			<Input placeholder="Search products..." />
 
-        <ProductCard
-          name="Coffee"
-          category="beverages"
-          price={4500}
-        />
-
-        <ProductCard
-          name="Sandwich"
-          category="food"
-          price={8999}
-        />
-
-        <ProductCard
-          name="Tea"
-          category="beverages"
-          price={3000}
-        />
-
-      </div>
-
-    </div>
-  )
+			<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+				{data?.map((product) => (
+					<ProductCard
+						key={product.id}
+						id={product.id}
+						name={product.name}
+						category={product.category}
+						price={product.selling_price}
+					/>
+				))}
+			</div>
+		</div>
+	);
 }
