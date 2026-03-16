@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { createProduct } from "@/features/products/api/create-product";
+import { useRouter } from "next/navigation";
 
 export default function ProductForm() {
   const [form, setForm] = useState({
@@ -15,6 +16,7 @@ export default function ProductForm() {
     description: "",
   });
 
+	const router = useRouter()
   const mutation = useMutation({
     mutationFn: createProduct,
     onSuccess: () => {
@@ -29,6 +31,8 @@ export default function ProductForm() {
         stock_quantity: "",
         description: "",
       });
+
+			router.push("/products")
     },
   });
 
