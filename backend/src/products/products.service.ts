@@ -72,6 +72,10 @@ export class ProductsService {
       ],
     );
 
+    if (result.rows.length === 0) {
+      throw new Error('Product not found');
+    }
+
     return result.rows[0] as Product;
   }
 
