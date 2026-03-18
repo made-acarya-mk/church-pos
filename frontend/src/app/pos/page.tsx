@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import ProductCard from "@/features/pos/components/product-pos-card";
 import type { Product } from "@/types/product";
+import { useCartStore } from "@/features/pos/store/use-cart"
+import { useEffect } from "react";
 
 async function fetchProducts(): Promise<Product[]> {
 	const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`);
@@ -16,6 +18,13 @@ export default function POSPage() {
 		queryKey: ["products"],
 		queryFn: fetchProducts,
 	});
+
+	const items = useCartStore(state => state.items)
+	// console.log(items)
+	// console.log("render pos page")
+	useEffect(() => {
+		console.log(items)
+	})
 
 	if (isLoading) return <div className="p-6">Loading products...</div>;
 

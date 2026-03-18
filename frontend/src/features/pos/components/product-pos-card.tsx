@@ -1,4 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { useCartStore } from "@/features/pos/store/use-cart";
+import { formatRupiah } from "@/lib/currencyFormat";
 
 type Props = {
 	id: number;
@@ -7,9 +9,15 @@ type Props = {
 	price: number;
 };
 
-export default function ProductPOSCard({ name, category, price }: Props) {
+export default function ProductPOSCard({ id, name, category, price }: Props) {
+	const addItem = useCartStore((state) => state.addItem);
 	return (
-		<Card className="cursor-pointer hover:shadow-md transition">
+		<Card
+			className="cursor-pointer hover:shadow-md transition"
+			onClick={(e) => {
+				e.stopPropagation();
+				addItem({ id, name, price });
+			}}>
 			<CardContent className="p-4">
 				<h3 className="font-semibold text-lg">{name}</h3>
 
@@ -18,10 +26,7 @@ export default function ProductPOSCard({ name, category, price }: Props) {
 				</span>
 
 				<p className="text-xl font-bold mt-2">
-					{price.toLocaleString("id-ID", {
-						style: "currency",
-						currency: "IDR",
-					})}
+					{formatRupiah(price)}
 				</p>
 			</CardContent>
 		</Card>

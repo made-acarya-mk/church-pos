@@ -8,7 +8,7 @@ import ProductForm from "@/features/products/components/product-form";
 import type { Product, ProductFormData } from "@/types/product";
 
 async function fetchProduct(id: string): Promise<Product> {
-	const res = await fetch(`http://localhost:3000/products/${id}`);
+	const res = await fetch(`process.env.NEXT_PUBLIC_API_URL/products/${id}`);
 
 	if (!res.ok) {
 		throw new Error("Failed to fetch product");
