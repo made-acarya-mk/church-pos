@@ -93,4 +93,18 @@ export class TransactionsService {
       client.release();
     }
   }
+
+  async findAll() {
+    const result = await this.db.query<{
+      id: number;
+      total_amount: number;
+      created_at: string;
+    }>(`
+    SELECT id, total_amount, created_at
+    FROM transactions
+    ORDER BY created_at DESC
+  `);
+
+    return result.rows;
+  }
 }
