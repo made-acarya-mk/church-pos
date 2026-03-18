@@ -7,6 +7,7 @@ import type { Product } from "@/types/product";
 import { useCartStore } from "@/features/pos/store/use-cart";
 import { useEffect } from "react";
 import { formatRupiah } from "@/lib/currencyFormat";
+import { createTransaction } from "@/features/pos/api/create-transaction";
 
 async function fetchProducts(): Promise<Product[]> {
 	const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`);
@@ -24,6 +25,7 @@ export default function POSPage() {
 	useEffect(() => {
 		console.log(items);
 	});
+	console.log("API READY", createTransaction)
 	const removeItem = useCartStore((state) => state.removeItem);
 	const updateQuantity = useCartStore((state) => state.updateQuantity);
 	const clearCart = useCartStore((state) => state.clearCart);
