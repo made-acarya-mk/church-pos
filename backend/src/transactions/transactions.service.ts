@@ -9,6 +9,10 @@ export class TransactionsService {
   async create(body: CreateTransactionPayload) {
     const { items, totalAmount } = body;
 
+    if (!items || items.length === 0) {
+      throw new BadRequestException('Transaction items cannot be empty');
+    }
+
     const client = await this.db.getClient();
 
     try {
@@ -64,7 +68,7 @@ export class TransactionsService {
           [item.quantity, item.productId],
         );
 
-        if (updateResult.rowCount === 0) {
+        if (!updateResult.rowCount || updateResult.rowCount === 0) {
           throw new BadRequestException(
             `Failed to update stock for product ID ${item.productId}`,
           );
@@ -76,12 +80,13 @@ export class TransactionsService {
       return {
         message: 'Transaction created successfully',
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (error instanceof Error) {
         console.error('TRANSACTION ERROR:', error.message);
       } else {
         console.error('TRANSACTION ERROR:', error);
       }
+
       await client.query('ROLLBACK');
       throw error;
     } finally {
