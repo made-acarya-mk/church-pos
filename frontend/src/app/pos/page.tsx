@@ -6,7 +6,7 @@ import ProductCard from "@/features/pos/components/product-pos-card";
 import type { Product } from "@/types/product";
 
 async function fetchProducts(): Promise<Product[]> {
-	const res = await fetch("http://localhost:3000/products");
+	const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`);
 	const data = await res.json();
 	return data.data;
 }
@@ -17,7 +17,7 @@ export default function POSPage() {
 		queryFn: fetchProducts,
 	});
 
-	if (isLoading) return <div className="p-6">Loading...</div>;
+	if (isLoading) return <div className="p-6">Loading products...</div>;
 
 	return (
 		<div className="p-6 space-y-6">
