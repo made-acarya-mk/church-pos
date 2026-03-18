@@ -25,7 +25,7 @@ export default function POSPage() {
 	useEffect(() => {
 		console.log(items);
 	});
-	console.log("API READY", createTransaction)
+
 	const removeItem = useCartStore((state) => state.removeItem);
 	const updateQuantity = useCartStore((state) => state.updateQuantity);
 	const clearCart = useCartStore((state) => state.clearCart);
@@ -33,6 +33,30 @@ export default function POSPage() {
 	const total = items.reduce((acc, item) => {
 		return acc + item.price * item.quantity;
 	}, 0);
+
+	const handleCheckout = async () => {
+		if (items.length === 0) return;
+
+		const payload = {
+			items: items.map((item) => ({
+				productId: item.id,
+				quantity: item.quantity,
+				price: item.price,
+			})),
+			totalAmount: items.reduce(
+				(acc, item) => acc + item.price * item.quantity,
+				0,
+			),
+		};
+
+		try {
+			await createTransaction(payload);
+
+			clearCart();
+		} catch (error) {
+			console.error("Checkout failed", error);
+		}
+	};
 
 	if (isLoading) return <div className="p-6">Loading products...</div>;
 
@@ -106,9 +130,7 @@ export default function POSPage() {
 				<span>{formatRupiah(total)}</span>
 			</div>
 			<button
-				onClick={() => {
-					clearCart();
-				}}
+				onClick={handleCheckout}
 				className="mt-4 w-full bg-black text-white py-2 rounded">
 				Checkout
 			</button>
