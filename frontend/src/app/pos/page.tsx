@@ -26,6 +26,7 @@ export default function POSPage() {
 	});
 	const removeItem = useCartStore((state) => state.removeItem);
 	const updateQuantity = useCartStore((state) => state.updateQuantity);
+	const clearCart = useCartStore((state) => state.clearCart);
 
 	const total = items.reduce((acc, item) => {
 		return acc + item.price * item.quantity;
@@ -102,6 +103,13 @@ export default function POSPage() {
 				<span>Total</span>
 				<span>{formatRupiah(total)}</span>
 			</div>
+			<button
+				onClick={() => {
+					clearCart();
+				}}
+				className="mt-4 w-full bg-black text-white py-2 rounded">
+				Checkout
+			</button>
 		</div>
 	);
 }
