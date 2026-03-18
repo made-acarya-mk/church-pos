@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
-import ProductCard from "@/features/pos/components/product-card";
+import ProductCard from "@/features/pos/components/product-pos-card";
 import type { Product } from "@/types/product";
 
 async function fetchProducts(): Promise<Product[]> {
