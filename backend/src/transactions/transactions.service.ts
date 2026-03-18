@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateTransactionPayload } from './types/transaction.type';
+import { TransactionHistory } from './types/transaction-history.type';
 
 @Injectable()
 export class TransactionsService {
@@ -94,17 +95,51 @@ export class TransactionsService {
     }
   }
 
-  async findAll() {
+  async findAll(): Promise<TransactionHistory[]> {
     const result = await this.db.query<{
-      id: number;
+      transaction_id: number;
       total_amount: number;
       created_at: string;
+      product_name: string;
+      quantity: number;
+      price: number;
     }>(`
-    SELECT id, total_amount, created_at
-    FROM transactions
-    ORDER BY created_at DESC
+    SELECT 
+      t.id as transaction_id,
+      t.total_amount,
+      t.created_at,
+      p.name as product_name,
+      ti.quantity,
+      ti.price
+    FROM transactions t
+    JOIN transaction_items ti ON ti.transaction_id = t.id
+    JOIN products p ON p.id = ti.product_id
+    ORDER BY t.created_at DESC
   `);
 
-    return result.rows;
+    const map = new Map<number, TransactionHistory>();
+
+    for (const row of result.rows) {
+      if (!map.has(row.transaction_id)) {
+        map.set(row.transaction_id, {
+          id: row.transaction_id,
+          totalAmount: row.total_amount,
+          createdAt: row.created_at,
+          items: [],
+        });
+      }
+
+      const transaction = map.get(row.transaction_id);
+
+      if (transaction) {
+        transaction.items.push({
+          productName: row.product_name,
+          quantity: row.quantity,
+          price: row.price,
+        });
+      }
+    }
+
+    return Array.from(map.values());
   }
 }
