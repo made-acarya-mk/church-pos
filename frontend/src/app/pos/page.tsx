@@ -25,6 +25,7 @@ export default function POSPage() {
 		console.log(items);
 	});
 	const removeItem = useCartStore((state) => state.removeItem);
+	const updateQuantity = useCartStore((state) => state.updateQuantity);
 
 	const total = items.reduce((acc, item) => {
 		return acc + item.price * item.quantity;
@@ -63,9 +64,20 @@ export default function POSPage() {
 								className="flex justify-between items-center border p-2 rounded">
 								<div>
 									<p className="font-medium">{item.name}</p>
-									<p className="text-sm text-gray-500">
-										{item.quantity} x {formatRupiah(item.price)}
-									</p>
+									<div className="flex items-center gap-2 mt-1">
+										<button
+											onClick={() => updateQuantity(item.id, item.quantity - 1)}
+											className="px-2 border rounded">
+											-
+										</button>
+										<span>{item.quantity}</span>
+
+										<button
+											onClick={() => updateQuantity(item.id, item.quantity + 1)}
+											className="px-2 border rounded">
+											+
+										</button>
+									</div>
 								</div>
 
 								<div className="flex items-center gap-2">
