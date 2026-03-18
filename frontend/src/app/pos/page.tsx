@@ -19,11 +19,15 @@ export default function POSPage() {
 		queryKey: ["products"],
 		queryFn: fetchProducts,
 	});
+	
 
 	const items = useCartStore((state) => state.items);
 	useEffect(() => {
 		console.log(items);
 	});
+	const total = items.reduce((acc, item) => {
+		return acc + item.price * item.quantity;
+	}, 0);
 
 	if (isLoading) return <div className="p-6">Loading products...</div>;
 
@@ -70,6 +74,12 @@ export default function POSPage() {
 						))}
 					</div>
 				)}
+			</div>
+
+			{/* TOTAL CART */}
+			<div className="mt-4 border-t pt-4 flex justify-between font-bold text-lg">
+				<span>Total</span>
+				<span>{formatRupiah(total)}</span>
 			</div>
 		</div>
 	);
