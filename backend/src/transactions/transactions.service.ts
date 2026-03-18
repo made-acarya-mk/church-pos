@@ -25,6 +25,13 @@ export class TransactionsService {
          VALUES ($1, $2, $3, $4)`,
         [transactionId, item.productId, item.quantity, item.price],
       );
+
+      await this.db.query(
+        `UPDATE products
+        SET stock_quantity = stock_quantity - $1
+        WHERE id = $2`,
+        [item.quantity, item.productId],
+      );
     }
     if (!transactionResult.rows.length) {
       throw new Error('Transaction insert failed');
