@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateTransactionPayload } from './types/transaction.type';
 
@@ -9,54 +9,83 @@ export class TransactionsService {
   async create(body: CreateTransactionPayload) {
     const { items, totalAmount } = body;
 
-    for (const item of items) {
-      const result = await this.db.query<{ stock_quantity: number }>(
-        `SELECT stock_quantity FROM products WHERE id = $1`,
-        [item.productId],
-      );
+    const client = await this.db.getClient();
 
-      const product = result.rows[0];
+    try {
+      await client.query('BEGIN');
 
-      if (!product) {
-        throw new Error(`Product with ID ${item.productId} not found`);
+      for (const item of items) {
+        const result = await client.query<{ stock_quantity: number }>(
+          `SELECT stock_quantity FROM products WHERE id = $1`,
+          [item.productId],
+        );
+
+        const product = result.rows[0];
+
+        if (!product) {
+          throw new BadRequestException(
+            `Product with ID ${item.productId} not found`,
+          );
+        }
+
+        if (product.stock_quantity < item.quantity) {
+          throw new BadRequestException(
+            `Insufficient stock for product ID ${item.productId}`,
+          );
+        }
       }
 
-      if (product.stock_quantity < item.quantity) {
-        throw new Error(`Insufficient stock for product ID ${item.productId}`);
+      const transactionResult = await client.query<{ id: number }>(
+        `INSERT INTO transactions (total_amount)
+         VALUES ($1)
+         RETURNING id`,
+        [totalAmount],
+      );
+
+      if (!transactionResult.rows.length) {
+        throw new BadRequestException('Transaction insert failed');
       }
+
+      const transactionId = transactionResult.rows[0].id;
+
+      for (const item of items) {
+        await client.query(
+          `INSERT INTO transaction_items 
+           (transaction_id, product_id, quantity, price)
+           VALUES ($1, $2, $3, $4)`,
+          [transactionId, item.productId, item.quantity, item.price],
+        );
+
+        const updateResult = await client.query(
+          `UPDATE products
+           SET stock_quantity = stock_quantity - $1
+           WHERE id = $2
+           AND stock_quantity >= $1`,
+          [item.quantity, item.productId],
+        );
+
+        if (updateResult.rowCount === 0) {
+          throw new BadRequestException(
+            `Failed to update stock for product ID ${item.productId}`,
+          );
+        }
+      }
+
+      await client.query('COMMIT');
+
+      return {
+        message: 'Transaction created successfully',
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('TRANSACTION ERROR:', error.message);
+      } else {
+        console.error('TRANSACTION ERROR:', error);
+      }
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
-
-    const transactionResult = await this.db.query<{ id: number }>(
-      `INSERT INTO transactions (total_amount)
-       VALUES ($1)
-       RETURNING id`,
-      [totalAmount],
-    );
-
-    if (!transactionResult.rows.length) {
-      throw new Error('Transaction insert failed');
-    }
-
-    const transactionId = transactionResult.rows[0].id;
-
-    for (const item of items) {
-      await this.db.query(
-        `INSERT INTO transaction_items 
-         (transaction_id, product_id, quantity, price)
-         VALUES ($1, $2, $3, $4)`,
-        [transactionId, item.productId, item.quantity, item.price],
-      );
-
-      await this.db.query(
-        `UPDATE products
-         SET stock_quantity = stock_quantity - $1
-         WHERE id = $2`,
-        [item.quantity, item.productId],
-      );
-    }
-
-    return {
-      message: 'Transaction created successfully',
-    };
   }
 }
