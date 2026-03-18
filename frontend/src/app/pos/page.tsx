@@ -19,12 +19,13 @@ export default function POSPage() {
 		queryKey: ["products"],
 		queryFn: fetchProducts,
 	});
-	
 
 	const items = useCartStore((state) => state.items);
 	useEffect(() => {
 		console.log(items);
 	});
+	const removeItem = useCartStore((state) => state.removeItem);
+
 	const total = items.reduce((acc, item) => {
 		return acc + item.price * item.quantity;
 	}, 0);
@@ -67,9 +68,17 @@ export default function POSPage() {
 									</p>
 								</div>
 
-								<p className="font-semibold">
-									{formatRupiah(item.price * item.quantity)}
-								</p>
+								<div className="flex items-center gap-2">
+									<p className="font-semibold">
+										{formatRupiah(item.price * item.quantity)}
+									</p>
+
+									<button
+										onClick={() => removeItem(item.id)}
+										className="text-red-500 text-sm">
+										Remove
+									</button>
+								</div>
 							</div>
 						))}
 					</div>
